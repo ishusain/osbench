@@ -62,7 +62,7 @@ static void create_file(const char* file_name) {
   }
 
   while (off < sizeof(FILE_DATA)) {
-    off += write(fd, (const void *) &FILE_DATA[off], sizeof(FILE_DATA - off));
+    off += write(fd, (const void *) &FILE_DATA[off], sizeof(FILE_DATA) - off);
   }
 
   if (-1 == fsync(fd)) {
