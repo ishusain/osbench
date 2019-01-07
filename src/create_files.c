@@ -3,10 +3,12 @@
 
 #include "common/time.h"
 
+#include <fcntl.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 static const double BENCHMARK_TIME = 5.0;
 
@@ -51,13 +53,23 @@ static void create_file(const char* file_name) {
     26, 27, 28, 29, 30, 31
   };
 
-  FILE *f = fopen(file_name, "wb");
-  if (!f) {
+  size_t off = 0;
+  int fd = open(file_name, O_WRONLY | O_CREAT);
+
+  if (-1 == fd) {
     fprintf(stderr, "*** Unable to create file \"%s\"\n", file_name);
     exit(1);
   }
-  fwrite(FILE_DATA, 1, sizeof(FILE_DATA), f);
-  fclose(f);
+
+  while (off < sizeof(FILE_DATA)) {
+    off += write(fd, (const void *) &FILE_DATA[off], sizeof(FILE_DATA - off));
+  }
+
+  if (-1 == fsync(fd)) {
+    fprintf(stderr, "*** Unable to sync file \"%s\"\n", file_name);
+    exit(1);
+  }
+  close(fd);
 }
 
 static void delete_file(const char* file_name) {
