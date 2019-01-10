@@ -36,6 +36,7 @@ int main(int argc, const char** argv) {
     if (dt < best_time) {
       best_time = dt;
     }
+    break;
   }
 
   printf("%f ns / alloc\n", (best_time / (double)NUM_ALLOCS) * 1000000000.0);
