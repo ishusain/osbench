@@ -5,41 +5,82 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/mman.h>
 
-static const double BENCHMARK_TIME = 5.0;
-#define NUM_ALLOCS 1000000
+#define ITERS 1000
+#define FOUR_K 0x1000
 
-static void* s_addresses[NUM_ALLOCS];
 
 int main(int argc, const char** argv) {
   (void)argc;
   (void)argv;
-  printf("Benchmark: Allocate/free %d memory chunks (4-128 bytes)...\n", NUM_ALLOCS);
+
+  printf("Benchmark: Allocate/free %d memory chunks (4-128 bytes)...\n", ITERS);
   fflush(stdout);
 
-  double best_time = 1e9;
-  const double start_t = get_time();
-  while (get_time() - start_t < BENCHMARK_TIME) {
-    const double t0 = get_time();
+  size_t size = 1;
+  size_t counter = 0;
+  int error = 0;
 
-    for (int i = 0; i < NUM_ALLOCS; ++i) {
-      const size_t memory_size = ((i % 32) + 1) * 4;
-      s_addresses[i] = malloc(memory_size);
-      ((char*)s_addresses[i])[0] = 1;
-    }
 
-    for (int i = 0; i < NUM_ALLOCS; ++i) {
-      free(s_addresses[i]);
-    }
-
-    double dt = get_time() - t0;
-    if (dt < best_time) {
-      best_time = dt;
-    }
-    break;
+  void **allocs = (void **) realloc(NULL, size * sizeof(void *));
+  if(allocs == NULL)
+  {
+    fprintf(stderr, "out of memory");
+    exit(-1);
   }
 
-  printf("%f ns / alloc\n", (best_time / (double)NUM_ALLOCS) * 1000000000.0);
+  double t0 = get_time();
+
+  for (int i = 1; i <= ITERS; ++i) {
+
+    if(counter == size)
+    {
+      size *= 2;
+      void **n_allocs = (void **) realloc(allocs, size * sizeof(void *));
+      if(n_allocs == NULL)
+      {
+	 error = 1;
+	 break;
+      }
+      allocs = n_allocs;
+    }
+
+    char *mem = (char*) mmap(NULL, i * FOUR_K, PROT_READ | PROT_WRITE, MAP_ANON, -1, 0);
+    if(mem)
+    {
+      // enforce memory allocation by writing to it
+      for(unsigned j = 0; j < i; j++)
+      {
+        mem[j * FOUR_K] = 42;
+      }
+    }
+    else
+    {
+      error = 1;
+       break;
+    }
+
+    allocs[counter] = (void *) mem;
+
+    counter += 1;
+  }
+
+  for (int i = 0; i < counter; ++i) {
+    munmap(allocs[i], (i+1)*FOUR_K);
+  }
+
+  free(allocs);
+
+  if(error)
+  {
+    fprintf(stderr, "out of memory");
+    exit(-1);
+  }
+
+  double dt = get_time() - t0;
+
+  printf("%f ns / alloc\n", (dt * 1000000000 / ITERS));
   fflush(stdout);
 
   return 0;
