@@ -6,9 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include "unistd.h"
 
 #define ITERS 1000
-#define FOUR_K 0x1000
 
 
 int main(int argc, const char** argv) {
@@ -21,6 +21,14 @@ int main(int argc, const char** argv) {
   size_t size = 1;
   size_t counter = 0;
   int error = 0;
+
+  long page_size = sysconf(_SC_PAGE_SIZE);
+  if(page_size == -1)
+  {
+        perror("sysconf");
+        exit(-1);
+  }
+  //printf("page size: %ld\n", page_size);
 
 
   void **allocs = (void **) realloc(NULL, size * sizeof(void *));
@@ -46,19 +54,27 @@ int main(int argc, const char** argv) {
       allocs = n_allocs;
     }
 
-    char *mem = (char*) mmap(NULL, i * FOUR_K, PROT_READ | PROT_WRITE, MAP_ANON, -1, 0);
-    if(mem)
+    char *mem = (char*) mmap(
+        (void *) NULL
+        , i * page_size 
+        , PROT_READ | PROT_WRITE
+    , MAP_PRIVATE | MAP_ANONYMOUS
+        , -1
+        , 0
+    );
+    if(mem == MAP_FAILED)
+    {
+        perror("mmap");
+      error = 1;
+       break;
+    }
+    else
     {
       // enforce memory allocation by writing to it
       for(unsigned j = 0; j < i; j++)
       {
-        mem[j * FOUR_K] = 42;
+        mem[j * page_size] = 42;
       }
-    }
-    else
-    {
-      error = 1;
-       break;
     }
 
     allocs[counter] = (void *) mem;
@@ -67,7 +83,7 @@ int main(int argc, const char** argv) {
   }
 
   for (int i = 0; i < counter; ++i) {
-    munmap(allocs[i], (i+1)*FOUR_K);
+    munmap(allocs[i], (i+1)*page_size);
   }
 
   free(allocs);
