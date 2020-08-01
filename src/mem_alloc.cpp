@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 // For more information, see UNLICENSE.
 
-#include "common/time.h"
+#include "common/time.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,7 +40,7 @@ int main(int argc, const char** argv) {
 
   double t0 = get_time();
 
-  for (int i = 1; i <= ITERS; ++i) {
+  for (size_t i = 1; i <= ITERS; ++i) {
 
     if(counter == size)
     {
@@ -71,7 +71,7 @@ int main(int argc, const char** argv) {
     else
     {
       // enforce memory allocation by writing to it
-      for(unsigned j = 0; j < i; j++)
+      for(size_t j = 0; j < i; j++)
       {
         mem[j * page_size] = 42;
       }
@@ -82,7 +82,7 @@ int main(int argc, const char** argv) {
     counter += 1;
   }
 
-  for (int i = 0; i < counter; ++i) {
+  for (size_t i = 0; i < counter; ++i) {
     munmap(allocs[i], (i+1)*page_size);
   }
 

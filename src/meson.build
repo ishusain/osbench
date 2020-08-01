@@ -1,7 +1,7 @@
 # This is free and unencumbered software released into the public domain.
 # For more information, see UNLICENSE.
 
-project('osbench', ['c'])
+project('osbench', ['cpp'])
 
 # All includes are relative to the root directory.
 root_inc = include_directories('.')
@@ -13,13 +13,13 @@ subdir('common')
 thread_dep = dependency('threads', required: true)
 
 # We need the math library on some systems.
-cc = meson.get_compiler('c')
+cc = meson.get_compiler('cpp')
 m_dep = cc.find_library('m', required : false)
 
 # Threading benchmark.
 create_threads_exe = executable(
     'create_threads',
-    ['create_threads.c'],
+    ['create_threads.cpp'],
     include_directories: [root_inc],
     dependencies: [
         common_dep,
@@ -31,7 +31,7 @@ create_threads_exe = executable(
 if target_machine.system() != 'windows'
   create_processes_exe = executable(
       'create_processes',
-      ['create_processes.c'],
+      ['create_processes.cpp'],
       include_directories: [root_inc],
       dependencies: [
           common_dep
@@ -42,7 +42,7 @@ endif
 # Launch programs benchmark.
 launch_programs_exe = executable(
     'launch_programs',
-    ['launch_programs.c'],
+    ['launch_programs.cpp'],
     include_directories: [root_inc],
     dependencies: [
         common_dep
@@ -52,7 +52,7 @@ launch_programs_exe = executable(
 # File creation benchmark.
 create_files_exe = executable(
     'create_files',
-    ['create_files.c'],
+    ['create_files.cpp'],
     include_directories: [root_inc],
     dependencies: [
         common_dep,
@@ -63,7 +63,7 @@ create_files_exe = executable(
 # Memory allocation benchmark.
 mem_alloc_exe = executable(
     'mem_alloc',
-    ['mem_alloc.c'],
+    ['mem_alloc.cpp'],
     include_directories: [root_inc],
     dependencies: [
         common_dep

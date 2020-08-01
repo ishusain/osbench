@@ -2,8 +2,8 @@
 # For more information, see UNLICENSE.
 
 common_src = [
-    'time.c',
-    'time.h'
+    'time.cpp',
+    'time.hpp'
     ]
 common_lib = static_library(
     'common',

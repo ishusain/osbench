@@ -1,7 +1,7 @@
 // This is free and unencumbered software released into the public domain.
 // For more information, see UNLICENSE.
 
-#include "common/time.h"
+#include "common/time.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
